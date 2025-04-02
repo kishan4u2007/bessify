@@ -28,11 +28,12 @@ const httpServer = createServer(app);
 initializeSocket(httpServer);
 
 app.use(
-	cors({
-		origin: "http://localhost:3000",
-		credentials: true,
-	})
+    cors({
+        origin: ["https://bassify.in", "http://localhost:3000"], // Allow both local and live frontend
+        credentials: true,
+    })
 );
+
 
 app.use(express.json()); // to parse req.body
 app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
