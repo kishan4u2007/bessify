@@ -4,16 +4,21 @@ import { Message } from "../models/message.model.js";
 export const initializeSocket = (server) => {
 	const io = new Server(server, {
 		cors: {
-			origin: "http://localhost:3000",
+			origin: ["http://localhost:3000", "https://bassify.in"],
 			credentials: true,
+			methods: ["GET", "POST"]
 		},
+		path: "/socket.io",
 	});
 
 	const userSockets = new Map(); // { userId: socketId}
 	const userActivities = new Map(); // {userId: activity}
 
 	io.on("connection", (socket) => {
+		console.log("Socket connected:", socket.id);
+		
 		socket.on("user_connected", (userId) => {
+			console.log("User connected:", userId);
 			userSockets.set(userId, socket.id);
 			userActivities.set(userId, "Idle");
 
@@ -34,6 +39,7 @@ export const initializeSocket = (server) => {
 		socket.on("send_message", async (data) => {
 			try {
 				const { senderId, receiverId, content } = data;
+				console.log("Message sent:", senderId, "to", receiverId);
 
 				const message = await Message.create({
 					senderId,
@@ -55,6 +61,7 @@ export const initializeSocket = (server) => {
 		});
 
 		socket.on("disconnect", () => {
+			console.log("Socket disconnected:", socket.id);
 			let disconnectedUserId;
 			for (const [userId, socketId] of userSockets.entries()) {
 				// find disconnected user

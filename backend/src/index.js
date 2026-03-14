@@ -1,6 +1,7 @@
 import express from "express";
-import dotenv from "dotenv";
-import { clerkMiddleware } from "@clerk/express";
+import dotenv from "dotenv"; // nodemon restart: 2026-03-11T22:27
+
+
 import fileUpload from "express-fileupload";
 import path from "path";
 import cors from "cors";
@@ -17,6 +18,7 @@ import authRoutes from "./routes/auth.route.js";
 import songRoutes from "./routes/song.route.js";
 import albumRoutes from "./routes/album.route.js";
 import statRoutes from "./routes/stat.route.js";
+import playlistRoutes from "./routes/playlist.route.js";
 
 dotenv.config();
 
@@ -28,22 +30,21 @@ const httpServer = createServer(app);
 initializeSocket(httpServer);
 
 app.use(
-    cors({
-        origin: ["https://bassify.in", "http://localhost:3000"], // Allow both local and live frontend
-        credentials: true,
-    })
+	cors({
+		origin: ["https://bassify.in", "http://localhost:3000"], // Allow both local and live frontend
+		credentials: true,
+	})
 );
 
 
 app.use(express.json()); // to parse req.body
-app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
 app.use(
 	fileUpload({
 		useTempFiles: true,
 		tempFileDir: path.join(__dirname, "tmp"),
 		createParentPath: true,
 		limits: {
-			fileSize: 10 * 1024 * 1024, // 10MB  max file size
+			fileSize: 100 * 1024 * 1024, // 100MB max file size
 		},
 	})
 );
@@ -58,7 +59,7 @@ cron.schedule("0 * * * *", () => {
 				return;
 			}
 			for (const file of files) {
-				fs.unlink(path.join(tempDir, file), (err) => {});
+				fs.unlink(path.join(tempDir, file), (err) => { });
 			}
 		});
 	}
@@ -69,6 +70,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/albums", albumRoutes);
+app.use("/api/playlists", playlistRoutes);
 app.use("/api/stats", statRoutes);
 
 if (process.env.NODE_ENV === "production") {
@@ -87,3 +89,5 @@ httpServer.listen(PORT, () => {
 	console.log("Server is running on port " + PORT);
 	connectDB();
 });
+
+

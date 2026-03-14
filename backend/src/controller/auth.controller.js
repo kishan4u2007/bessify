@@ -2,17 +2,17 @@ import { User } from "../models/user.model.js";
 
 export const authCallback = async (req, res, next) => {
 	try {
-		const { id, firstName, lastName, imageUrl } = req.body;
+		const { uid, email, displayName, photoURL } = req.body;
 
 		// check if user already exists
-		const user = await User.findOne({ clerkId: id });
+		const user = await User.findOne({ clerkId: uid });
 
 		if (!user) {
 			// signup
 			await User.create({
-				clerkId: id,
-				fullName: `${firstName || ""} ${lastName || ""}`.trim(),
-				imageUrl,
+				clerkId: uid,
+				fullName: displayName || email.split("@")[0],
+				imageUrl: photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(displayName || email.split("@")[0]),
 			});
 		}
 
