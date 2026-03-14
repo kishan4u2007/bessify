@@ -31,7 +31,7 @@ initializeSocket(httpServer);
 
 app.use(
 	cors({
-		origin: ["https://bassify.in", "http://localhost:3000"], // Allow both local and live frontend
+		origin: ["https://bassify.in", "https://bessify.onrender.com", "http://localhost:3000"], // Allow both local and live frontend
 		credentials: true,
 	})
 );
