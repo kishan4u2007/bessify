@@ -22,7 +22,12 @@ interface ChatStore {
 	setSelectedUser: (user: User | null) => void;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const defaultApiUrl =
+	typeof window !== "undefined"
+		? `${window.location.origin}/api`
+		: "http://localhost:5000/api";
+
+const API_URL = import.meta.env.VITE_API_URL || defaultApiUrl;
 const SOCKET_URL = API_URL.replace("/api", "");
 
 const socket = io(SOCKET_URL, {
