@@ -7,16 +7,21 @@ const ChatHeader = () => {
 	if (!selectedUser) return null;
 
 	return (
-		<div className='p-4 border-b border-zinc-800'>
+		<div className='p-4 border-b border-primary/10 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md'>
 			<div className='flex items-center gap-3'>
-				<Avatar>
+				<Avatar className="border border-primary/20 shadow-sm">
 					<AvatarImage src={selectedUser.imageUrl} />
 					<AvatarFallback>{selectedUser.fullName[0]}</AvatarFallback>
 				</Avatar>
 				<div>
-					<h2 className='font-medium'>{selectedUser.fullName}</h2>
-					<p className='text-sm text-zinc-400'>
-						{onlineUsers.has(selectedUser.clerkId) ? "Online" : "Offline"}
+					<h2 className='font-bold text-slate-900 dark:text-white'>{selectedUser.fullName}</h2>
+					<p className='text-xs font-medium text-slate-500'>
+						{onlineUsers.has(selectedUser.authId) ? (
+							<span className="text-green-500 flex items-center gap-1">
+								<span className="size-1.5 bg-green-500 rounded-full inline-block"></span>
+								Online
+							</span>
+						) : "Offline"}
 					</p>
 				</div>
 			</div>

@@ -22,11 +22,15 @@ interface ChatStore {
 	setSelectedUser: (user: User | null) => void;
 }
 
-const baseURL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const SOCKET_URL = API_URL.replace("/api", "");
 
-const socket = io(baseURL, {
-	autoConnect: false, // only connect if user is authenticated
+const socket = io(SOCKET_URL, {
+	autoConnect: false,
 	withCredentials: true,
+	reconnection: true,
+	reconnectionDelay: 1000,
+	reconnectionAttempts: 5,
 });
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -48,7 +52,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 			const response = await axiosInstance.get("/users");
 			set({ users: response.data });
 		} catch (error: any) {
-			set({ error: error.response.data.message });
+			console.error("Error fetching users:", error);
+			set({ error: error.response?.data?.message || error.message });
 		} finally {
 			set({ isLoading: false });
 		}
@@ -59,7 +64,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 			socket.auth = { userId };
 			socket.connect();
 
-			socket.emit("user_connected", userId);
+			socket.on("connect", () => {
+				console.log("Socket connected successfully");
+				socket.emit("user_connected", userId);
+			});
+
+			socket.on("connect_error", (error) => {
+				console.error("Socket connection error:", error);
+			});
+
+			socket.on("disconnect", (reason) => {
+				console.log("Socket disconnected:", reason);
+			});
 
 			socket.on("users_online", (users: string[]) => {
 				set({ onlineUsers: new Set(users) });
@@ -127,7 +143,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 			const response = await axiosInstance.get(`/users/messages/${userId}`);
 			set({ messages: response.data });
 		} catch (error: any) {
-			set({ error: error.response.data.message });
+			console.error("Error fetching messages:", error);
+			set({ error: error.response?.data?.message || error.message });
 		} finally {
 			set({ isLoading: false });
 		}
