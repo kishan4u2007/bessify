@@ -1,8 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Topbar from "@/components/Topbar";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlayerStore } from "@/stores/usePlayerStore";
-import { Clock, Pause, Play } from "lucide-react";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
@@ -29,124 +28,165 @@ const AlbumPage = () => {
 		const isCurrentAlbumPlaying = currentAlbum?.songs.some((song) => song._id === currentSong?._id);
 		if (isCurrentAlbumPlaying) togglePlay();
 		else {
-			// start playing the album from the beginning
 			playAlbum(currentAlbum?.songs, 0);
 		}
 	};
 
 	const handlePlaySong = (index: number) => {
 		if (!currentAlbum) return;
-
 		playAlbum(currentAlbum?.songs, index);
 	};
 
 	return (
-		<div className='h-full'>
-			<ScrollArea className='h-full rounded-md'>
-				{/* Main Content */}
-				<div className='relative min-h-full'>
-					{/* bg gradient */}
-					<div
-						className='absolute inset-0 bg-gradient-to-b from-[#5038a0]/80 via-zinc-900/80
-					 to-zinc-900 pointer-events-none'
-						aria-hidden='true'
-					/>
-
-					{/* Content */}
-					<div className='relative z-10'>
-						<div className='flex p-6 gap-6 pb-8'>
-							<img
-								src={currentAlbum?.imageUrl}
-								alt={currentAlbum?.title}
-								className='w-[240px] h-[240px] shadow-xl rounded'
-							/>
-							<div className='flex flex-col justify-end'>
-								<p className='text-sm font-medium'>Album</p>
-								<h1 className='text-7xl font-bold my-4'>{currentAlbum?.title}</h1>
-								<div className='flex items-center gap-2 text-sm text-zinc-100'>
-									<span className='font-medium text-white'>{currentAlbum?.artist}</span>
-									<span>• {currentAlbum?.songs.length} songs</span>
-									<span>• {currentAlbum?.releaseYear}</span>
-								</div>
-							</div>
-						</div>
-
-						{/* play button */}
-						<div className='px-6 pb-4 flex items-center gap-6'>
-							<Button
+		<main className='flex-1 flex flex-col overflow-hidden bg-background-light dark:bg-background-dark h-full'>
+			<Topbar />
+			<ScrollArea className='flex-1 bg-gradient-to-b from-primary/10 to-transparent'>
+				{/* Album Hero */}
+				<div className='p-8 md:p-12 flex flex-col md:flex-row gap-8 items-end'>
+					<div className='w-64 h-64 md:w-80 md:h-80 shadow-2xl rounded-xl overflow-hidden bg-primary/20 relative group'>
+						<img
+							src={currentAlbum?.imageUrl}
+							alt={currentAlbum?.title}
+							className='w-full h-full object-cover'
+						/>
+						<div className='absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center'>
+							<button
 								onClick={handlePlayAlbum}
-								size='icon'
-								className='w-14 h-14 rounded-full bg-green-500 hover:bg-green-400 
-                hover:scale-105 transition-all'
+								className='bg-primary p-4 rounded-full text-white shadow-lg'
 							>
-								{isPlaying && currentAlbum?.songs.some((song) => song._id === currentSong?._id) ? (
-									<Pause className='h-7 w-7 text-black' />
-								) : (
-									<Play className='h-7 w-7 text-black' />
-								)}
-							</Button>
+								<span className='material-symbols-outlined fill text-4xl'>
+									{isPlaying && currentAlbum?.songs.some((song) => song._id === currentSong?._id) ? "pause" : "play_arrow"}
+								</span>
+							</button>
 						</div>
-
-						{/* Table Section */}
-						<div className='bg-black/20 backdrop-blur-sm'>
-							{/* table header */}
-							<div
-								className='grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-10 py-2 text-sm 
-            text-zinc-400 border-b border-white/5'
-							>
-								<div>#</div>
-								<div>Title</div>
-								<div>Released Date</div>
-								<div>
-									<Clock className='h-4 w-4' />
-								</div>
-							</div>
-
-							{/* songs list */}
-
-							<div className='px-6'>
-								<div className='space-y-2 py-4'>
-									{currentAlbum?.songs.map((song, index) => {
-										const isCurrentSong = currentSong?._id === song._id;
-										return (
-											<div
-												key={song._id}
-												onClick={() => handlePlaySong(index)}
-												className={`grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-4 py-2 text-sm 
-                      text-zinc-400 hover:bg-white/5 rounded-md group cursor-pointer
-                      `}
-											>
-												<div className='flex items-center justify-center'>
-													{isCurrentSong && isPlaying ? (
-														<div className='size-4 text-green-500'>♫</div>
-													) : (
-														<span className='group-hover:hidden'>{index + 1}</span>
-													)}
-													{!isCurrentSong && (
-														<Play className='h-4 w-4 hidden group-hover:block' />
-													)}
-												</div>
-
-												<div className='flex items-center gap-3'>
-													<img src={song.imageUrl} alt={song.title} className='size-10' />
-
-													<div>
-														<div className={`font-medium text-white`}>{song.title}</div>
-														<div>{song.artist}</div>
-													</div>
-												</div>
-												<div className='flex items-center'>{song.createdAt.split("T")[0]}</div>
-												<div className='flex items-center'>{formatDuration(song.duration)}</div>
-											</div>
-										);
-									})}
-								</div>
-							</div>
+					</div>
+					<div className='flex flex-col gap-2 mb-2'>
+						<span className='text-xs font-bold uppercase tracking-widest text-primary'>
+							Album
+						</span>
+						<h1 className='text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white'>
+							{currentAlbum?.title}
+						</h1>
+						<div className='flex items-center gap-2 mt-2'>
+							<span className='font-bold text-slate-900 dark:text-white hover:underline cursor-pointer'>
+								{currentAlbum?.artist}
+							</span>
+							<span className='text-slate-500'>•</span>
+							<span className='font-medium text-slate-500'>
+								{currentAlbum?.releaseYear}
+							</span>
+							<span className='text-slate-500'>•</span>
+							<span className='font-medium text-slate-500'>
+								{currentAlbum?.songs.length} songs
+							</span>
 						</div>
 					</div>
 				</div>
+
+				{/* Tracklist Section */}
+				<div className='px-8 pb-32'>
+					<div className='flex items-center gap-6 mb-8 border-b border-slate-200 dark:border-primary/10 pb-4'>
+						<button
+							onClick={handlePlayAlbum}
+							className='size-14 bg-primary rounded-full flex items-center justify-center text-white shadow-lg hover:scale-105 transition-transform'
+						>
+							<span className='material-symbols-outlined fill text-3xl'>
+								{isPlaying && currentAlbum?.songs.some((song) => song._id === currentSong?._id) ? "pause" : "play_arrow"}
+							</span>
+						</button>
+						<button className='material-symbols-outlined text-3xl text-slate-400 hover:text-primary transition-colors'>
+							favorite
+						</button>
+						<button className='material-symbols-outlined text-3xl text-slate-400 hover:text-primary transition-colors'>
+							download
+						</button>
+					</div>
+
+					<div className='overflow-x-auto'>
+						<table className='w-full text-left border-collapse min-w-[600px]'>
+							<thead>
+								<tr className='text-slate-500 text-xs font-bold uppercase border-b border-slate-200 dark:border-primary/10'>
+									<th className='px-4 py-3 w-12 text-center'>#</th>
+									<th className='px-4 py-3'>Title</th>
+									<th className='px-4 py-3 w-40 text-center'>Date Added</th>
+									<th className='px-4 py-3 w-20 text-right text-lg'>
+										<span className='material-symbols-outlined text-sm'>
+											schedule
+										</span>
+									</th>
+								</tr>
+							</thead>
+							<tbody className='divide-y divide-slate-100 dark:divide-primary/5'>
+								{currentAlbum?.songs.map((song, index) => {
+									const isCurrentSong = currentSong?._id === song._id;
+									return (
+										<tr
+											onClick={() => handlePlaySong(index)}
+											key={song._id}
+											className={`group transition-colors cursor-pointer ${isCurrentSong ? 'bg-primary/10' : 'hover:bg-primary/5'
+												}`}
+										>
+											<td className={`px-4 py-4 text-center font-medium relative ${isCurrentSong ? 'text-primary font-bold' : 'text-slate-400 group-hover:text-primary'
+												}`}>
+												{isCurrentSong && isPlaying ? (
+													<span className='material-symbols-outlined text-lg fill'>
+														equalizer
+													</span>
+												) : (
+													<span className='group-hover:hidden'>
+														{index + 1}
+													</span>
+												)}
+												{!isCurrentSong && (
+													<span className='material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 hidden group-hover:block'>
+														play_arrow
+													</span>
+												)}
+											</td>
+											<td className='px-4 py-4'>
+												<div className='flex items-center gap-3'>
+													<img
+														src={song.imageUrl}
+														alt={song.title}
+														className='size-10 rounded'
+													/>
+													<div className='flex flex-col'>
+														<span
+															className={`font-bold ${isCurrentSong
+																? "text-primary"
+																: "text-slate-800 dark:text-slate-100"
+																}`}
+														>
+															{song.title}
+														</span>
+														<span className={`text-xs ${isCurrentSong ? 'text-primary/70' : 'text-slate-500'}`}>
+															{song.artist}
+														</span>
+													</div>
+												</div>
+											</td>
+											<td className='px-4 py-4 text-center'>
+												<span className={`text-xs ${isCurrentSong ? 'text-primary/70' : 'text-slate-500'}`}>
+													{song.createdAt.split("T")[0]}
+												</span>
+											</td>
+											<td
+												className={`px-4 py-4 text-right text-sm ${isCurrentSong
+													? "text-primary font-bold"
+													: "text-slate-500"
+													}`}
+											>
+												{formatDuration(song.duration)}
+											</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</ScrollArea>
-		</div>
+		</main>
 	);
 };
 export default AlbumPage;

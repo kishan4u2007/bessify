@@ -1,74 +1,81 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChatStore } from "@/stores/useChatStore";
-import { useUser } from "@clerk/clerk-react";
-import { HeadphonesIcon, Music, Users } from "lucide-react";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { useEffect } from "react";
 
 const FriendsActivity = () => {
 	const { users, fetchUsers, onlineUsers, userActivities } = useChatStore();
-	const { user } = useUser();
+	const { user } = useAuthStore();
 
 	useEffect(() => {
 		if (user) fetchUsers();
 	}, [fetchUsers, user]);
 
 	return (
-		<div className='h-full bg-zinc-900 rounded-lg flex flex-col'>
-			<div className='p-4 flex justify-between items-center border-b border-zinc-800'>
-				<div className='flex items-center gap-2'>
-					<Users className='size-5 shrink-0' />
-					<h2 className='font-semibold'>What they're listening to</h2>
-				</div>
+		<div className='h-full border-l border-primary/10 bg-background-light dark:bg-background-dark flex flex-col'>
+			<div className='p-6 pb-2 flex justify-between items-center'>
+				<h3 className='text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2'>
+					<span className='material-symbols-outlined text-primary'>diversity_3</span>
+					Live Activity
+				</h3>
 			</div>
 
 			{!user && <LoginPrompt />}
 
 			<ScrollArea className='flex-1'>
-				<div className='p-4 space-y-4'>
-					{users.map((user) => {
-						const activity = userActivities.get(user.clerkId);
+				<div className='p-6 flex flex-col gap-6'>
+					{users.map((u) => {
+						const activity = userActivities.get(u.authId);
 						const isPlaying = activity && activity !== "Idle";
+						const isOnline = onlineUsers.has(u.authId);
 
 						return (
-							<div
-								key={user._id}
-								className='cursor-pointer hover:bg-zinc-800/50 p-3 rounded-md transition-colors group'
-							>
-								<div className='flex items-start gap-3'>
+							<div key={u._id} className='group'>
+								<div className='flex items-center gap-3 mb-3'>
 									<div className='relative'>
-										<Avatar className='size-10 border border-zinc-800'>
-											<AvatarImage src={user.imageUrl} alt={user.fullName} />
-											<AvatarFallback>{user.fullName[0]}</AvatarFallback>
+										<Avatar className={`size-12 ring-2 ${isOnline ? 'ring-emerald-500' : 'ring-slate-500'}`}>
+											<AvatarImage src={u.imageUrl} alt={u.fullName} className='object-cover' />
+											<AvatarFallback>{u.fullName[0]}</AvatarFallback>
 										</Avatar>
 										<div
-											className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-zinc-900 
-												${onlineUsers.has(user.clerkId) ? "bg-green-500" : "bg-zinc-500"}
+											className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background-light dark:border-background-dark 
+												${isOnline ? "bg-emerald-500" : "bg-slate-500"}
 												`}
 											aria-hidden='true'
 										/>
 									</div>
 
-									<div className='flex-1 min-w-0'>
-										<div className='flex items-center gap-2'>
-											<span className='font-medium text-sm text-white'>{user.fullName}</span>
-											{isPlaying && <Music className='size-3.5 text-emerald-400 shrink-0' />}
-										</div>
-
+									<div>
+										<p className='text-sm font-bold text-slate-900 dark:text-white'>{u.fullName}</p>
 										{isPlaying ? (
-											<div className='mt-1'>
-												<div className='mt-1 text-sm text-white font-medium truncate'>
-													{activity.replace("Playing ", "").split(" by ")[0]}
-												</div>
-												<div className='text-xs text-zinc-400 truncate'>
-													{activity.split(" by ")[1]}
-												</div>
-											</div>
+											<p className='text-[10px] text-emerald-500 font-bold uppercase'>Listening Now</p>
 										) : (
-											<div className='mt-1 text-xs text-zinc-400'>Idle</div>
+											<p className='text-[10px] text-slate-500 font-bold uppercase'>Idle</p>
 										)}
 									</div>
 								</div>
+
+								{isPlaying && (
+									<div className='bg-primary/5 rounded-2xl p-4 border border-primary/10'>
+										<div className='flex items-center gap-3 mb-3'>
+											<div className='h-10 w-10 flex-shrink-0 rounded-lg bg-zinc-800 flex items-center justify-center overflow-hidden'>
+												<span className='material-symbols-outlined text-primary'>music_note</span>
+											</div>
+											<div className='overflow-hidden min-w-0'>
+												<p className='text-xs font-bold truncate text-slate-900 dark:text-slate-200'>
+													{activity.replace("Playing ", "").split(" by ")[0]}
+												</p>
+												<p className='text-[10px] text-slate-500 truncate'>
+													{activity.split(" by ")[1] || "Unknown Artist"}
+												</p>
+											</div>
+										</div>
+										<button className='w-full bg-primary/20 hover:bg-primary text-primary hover:text-white py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2'>
+											<span className='material-symbols-outlined text-sm'>headphones</span> Join Room
+										</button>
+									</div>
+								)}
 							</div>
 						);
 					})}
@@ -81,20 +88,13 @@ export default FriendsActivity;
 
 const LoginPrompt = () => (
 	<div className='h-full flex flex-col items-center justify-center p-6 text-center space-y-4'>
-		<div className='relative'>
-			<div
-				className='absolute -inset-1 bg-gradient-to-r from-emerald-500 to-sky-500 rounded-full blur-lg
-       opacity-75 animate-pulse'
-				aria-hidden='true'
-			/>
-			<div className='relative bg-zinc-900 rounded-full p-4'>
-				<HeadphonesIcon className='size-8 text-emerald-400' />
-			</div>
+		<div className='relative shadow-lg ring-1 ring-white/10 rounded-full p-4'>
+			<span className='material-symbols-outlined text-4xl text-emerald-400'>headphones</span>
 		</div>
 
 		<div className='space-y-2 max-w-[250px]'>
-			<h3 className='text-lg font-semibold text-white'>See What Friends Are Playing</h3>
-			<p className='text-sm text-zinc-400'>Login to discover what music your friends are enjoying right now</p>
+			<h3 className='text-lg font-bold text-slate-900 dark:text-white'>See What Friends Are Playing</h3>
+			<p className='text-sm text-slate-500'>Login to discover what music your friends are enjoying right now</p>
 		</div>
 	</div>
 );
